@@ -32,8 +32,12 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
   <div class="footer">
     <h3><a href="http://eeyore.seis.sc.edu/scsn/lobbyshake">http://eeyore.seis.sc.edu/scsn/lobbyshake</a></h3>
+    <h5>Generated with <a href="https://github.com/crotwell/seisplotjs">Seisplotjs version <span id="sp_version">3</span></a>.</h5>
   </div>
 `
+
+const verEl = document.querySelector('#sp_version');
+if (verEl) { verEl.textContent = sp.version; console.log(`SeisplotJS version: ${sp.version}`);}
 
 const mapList = document.querySelectorAll('sp-station-quake-map');
 mapList.forEach( map => {
