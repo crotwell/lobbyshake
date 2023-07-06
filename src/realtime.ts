@@ -22,7 +22,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   seisPlotConfig.isYAxisNice = false;
   seisPlotConfig.linkedTimeScale.offset = sp.luxon.Duration.fromMillis(-1*duration.toMillis());
   seisPlotConfig.linkedTimeScale.duration = duration;
-  seisPlotConfig.linkedAmplitudeScale = new sp.scale.IndividualAmplitudeScale();
+  seisPlotConfig.linkedAmplitudeScale = new sp.scale.FixedHalfWidthAmplitudeScale(1e-4);
   seisPlotConfig.yLabel = null;
   seisPlotConfig.ySublabelIsUnits = true;
   seisPlotConfig.doGain = true;
@@ -54,26 +54,22 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       let seisPlot = graphList.get(codes);
       if ( ! seisPlot) {
           let seismogram = new sp.seismogram.Seismogram( [ seisSegment ]);
+          //seismogram = sp.filter.rMean(seismogram);
           let seisData = sp.seismogram.SeismogramDisplayData.fromSeismogram(seismogram);
           seisData.alignmentTime = sp.luxon.DateTime.utc();
+          seisData.associateChannel(networkList);
           seisPlot = new sp.seismograph.Seismograph([seisData], seisPlotConfig);
-          console.log(`look for sens: ${networkList.length} ${seisData.sourceId}`)
-
-          const allChans = Array.from(sp.stationxml.findChannels(networkList, seisData.networkCode, seisData.stationCode, seisData.locationCode, seisData.channelCode));
-          console.log(`find chans: ${allChans.length}`)
-          console.log(allChans[0])
-          for (const chan of allChans) {
-            if (chan.isActiveAt(seismogram.start)) {
-              seisData.channel = chan;
-              console.log(`${seisData.codes()} sensitivity: ${seisData.sensitivity?.sensitivity}`)
-            } else {
-              console.log(`codes but not active: ${chan.sourceId()}`)
-            }
-          }
           realtimeDiv.appendChild(seisPlot);
           graphList.set(codes, seisPlot);
         } else {
-          seisPlot.seisData[0].append(seisSegment);
+          let sdd = seisPlot.seisData[0];
+          sdd.append(seisSegment);
+
+          let seis = sdd.seismogram;
+          const timeWindow = new sp.util.durationEnd(duration, sp.luxon.DateTime.utc());
+          seis.trim(timeWindow); // trim old data
+          //seis = sp.filter.rMean(seis);
+          sdd.seismogram = seis;
           seisPlot.recheckAmpScaleDomain();
         }
         seisPlot.draw();
