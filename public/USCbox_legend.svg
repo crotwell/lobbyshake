@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="180.74277mm"
+   height="121.53899mm"
+   viewBox="0 0 180.74276 121.53899"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   sodipodi:docname="USCbox_legend.svg"
+   inkscape:export-filename="USCbox_legend.png"
+   inkscape:export-xdpi="200.7"
+   inkscape:export-ydpi="200.7"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.84096521"
+     inkscape:cx="262.79327"
+     inkscape:cy="302.62845"
+     inkscape:window-width="1923"
+     inkscape:window-height="1061"
+     inkscape:window-x="689"
+     inkscape:window-y="232"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(8.7278314,-64.736298)">
+    <rect
+       style="fill:#ececec;stroke:#000000;stroke-width:2;stroke-dasharray:none;paint-order:stroke fill markers"
+       id="rect294"
+       width="178.74277"
+       height="119.53899"
+       x="-7.7278314"
+       y="65.736298" />
+    <g
+       id="g1592"
+       transform="translate(0.44533561,4.8008176)">
+      <circle
+         style="fill:#ffaaaa;stroke:#ff0000;stroke-width:1.18489;paint-order:stroke fill markers"
+         id="path577"
+         cx="15.530039"
+         cy="88.20694"
+         r="16.907555" />
+      <circle
+         style="fill:#ffaaaa;stroke:#ff0000;stroke-width:0.50781;paint-order:stroke fill markers"
+         id="path577-7"
+         cx="15.530039"
+         cy="123.04342"
+         r="7.2460952" />
+      <text
+         xml:space="preserve"
+         style="font-size:10.5833px;line-height:1.25;font-family:Helvetica;-inkscape-font-specification:'Helvetica, Normal';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="36.989563"
+         y="90.845016"
+         id="text789"><tspan
+           sodipodi:role="line"
+           id="tspan787"
+           style="font-size:10.5833px;stroke-width:0.264583"
+           x="36.989563"
+           y="90.845016">Big earthquakes</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:10.5833px;line-height:1.25;font-family:Helvetica;-inkscape-font-specification:'Helvetica, Normal';letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="37.258572"
+         y="125.83135"
+         id="text843"><tspan
+           sodipodi:role="line"
+           id="tspan841"
+           style="font-size:10.5833px;stroke-width:0.264583"
+           x="37.258572"
+           y="125.83135">Small earthquakes</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:10.5833px;line-height:1.25;font-family:Helvetica;-inkscape-font-specification:'Helvetica, Normal';letter-spacing:0px;word-spacing:0px;white-space:pre;inline-size:130.26;display:inline;stroke-width:0.264583"
+         x="44.540569"
+         y="158.56781"
+         id="text847"
+         transform="translate(-7.2362288,-5.8607989)"><tspan
+           x="44.540569"
+           y="158.56781"
+           id="tspan2906">Seismometers in the South </tspan><tspan
+           x="44.540569"
+           y="171.79693"
+           id="tspan2908">Carolina Seismic Network</tspan></text>
+      <path
+         sodipodi:type="star"
+         style="fill:#000000;stroke:none;stroke-width:0.79375;paint-order:stroke fill markers"
+         id="path901"
+         inkscape:flatsided="false"
+         sodipodi:sides="3"
+         sodipodi:cx="-96.902534"
+         sodipodi:cy="154.47775"
+         sodipodi:r1="32.974976"
+         sodipodi:r2="16.507425"
+         sodipodi:arg1="0.52359878"
+         sodipodi:arg2="1.5707963"
+         inkscape:rounded="0"
+         inkscape:randomized="0"
+         d="m -68.345368,170.96524 -28.557166,0.0199 -28.557166,-0.0199 14.26132,-24.7412 14.295846,-24.72126 14.295849,24.72126 z"
+         inkscape:transform-center-y="-4.8242086"
+         transform="matrix(0.61280589,0,0,0.61280589,74.912483,65.922282)" />
+    </g>
+  </g>
+</svg>
