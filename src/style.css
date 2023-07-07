@@ -8,7 +8,7 @@
 }
 
 .content {
-  display: flex
+  display: flex;
   flex-flow: column;
   flex: 1 1 auto;
 }
@@ -20,20 +20,72 @@
   height: 100%;
 }
 #thegrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr
+  display: flex;
+  flex-flow: column;
 }
 
 sp-seismograph {
   min-height: 100px;
   width: 100%;
-  height: 90%;
+  height: 100%;
 }
 
 sp-station-quake-map {
   min-height: 100px;
   width: 100%;
-  height: 90%;
+  flex: 1;
+}
+
+h5 {
+  flex: 0;
+}
+
+#toprow {
+  display: flex;
+  flex-flow: row;
+  flex: 2;
+}
+div.realtime {
+  flex: 1;
+}
+#globalmap {
+  flex: 1;
+}
+
+#botrow {
+  display: flex;
+  flex-flow: row;
+  flex: 1;
+}
+#scmap {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+}
+#globalmap {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+}
+#explain {
+  flex: 3;
+  display: flex;
+  flex-flow: row;
+  max-width: 50vw;
+  max-height: 40vh;
+}
+#explain p {
+  flex: 2 0 auto;
+}
+#explain img#explainbox {
+  flex: 1 1 auto;
+  max-width: 35vw;
+  align-self: flex-start;
+}
+#explain img#legendbox {
+  flex: 1 1 auto;
+  max-width: 10vw;
+  align-self: flex-end;
 }
 
 :root {

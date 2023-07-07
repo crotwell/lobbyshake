@@ -78,7 +78,7 @@ export function loadSCEarthquakes(dur?: sp.luxon.Duration): Promise<Array<Quake>
       return new DOMParser().parseFromString(rawXmlText, sp.util.XML_MIME);
     })
     .then(rawXml => {
-          return sp.quakeml.parseQuakeML(rawXml);
+          return sp.quakeml.parseQuakeML(rawXml).eventList;
     })
     .then(quakeList => {
       return quakeList.filter(q => timeWindow.contains(q.time));

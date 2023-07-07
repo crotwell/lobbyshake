@@ -3,6 +3,7 @@ import typescriptLogo from './typescript.svg'
 import viteLogo from '/vite.svg'
 import { showRealtime } from './realtime.ts'
 import {loadQuakes, loadStations, loadSCEarthquakes} from './quake_station.ts';
+import * as L from "leaflet";
 
 import * as sp from 'seisplotjs';
 const qsmap = new sp.leafletutil.QuakeStationMap();
@@ -13,24 +14,39 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
   <div class="content">
     <div id="thegrid">
+      <div id="toprow">
       <div id="realtime" class="realtime">
       </div>
-      <div>
-        <sp-station-quake-map id="scmap" centerLat="34.1" centerLon="-80.25" zoomLevel="7"></sp-station-quake-map>
+      <div id="globalmap">
+        <h5>Earthquakes across the world in the past X days</h5>
+        <sp-station-quake-map id="globalmap"
+        centerLon="-80.25" maxZoom="3" zoomLevel="2"
+        fitBounds="false">
+        </sp-station-quake-map>
       </div>
-      <div>
-        <sp-station-quake-map id="globalmap" maxZoom="2" zoomLevel="1" fitBounds="false"></sp-station-quake-map>
+      </div>
+      <div id="botrow">
+      <div id="scmap">
+        <h5>Earthquakes in South Carolina in the past 90 days</h5>
+        <sp-station-quake-map id="scmap"
+          centerLat="33.9" centerLon="-80.3" zoomLevel="6"
+          tileUrl="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          tileAttribution="OpenStreetMap"
+          >
+        </sp-station-quake-map>
       </div>
       <div id="explain">
-        <p>Hear ye, hear ye. Stuff shalt be told unto ye...
-        </p>
+        <img src="USCbox.svg" id="explainbox"></img>
+        <img src="USCbox_legend.svg" id="legendbox"></img>
       </div>
-
+      </div>
     </div>
     <div id="debug">
     </div>
   </div>
   <div class="footer">
+    <button id="pause">Pause</button>
+    <button id="disconnect">Disconnect</button>
     <h3><a href="http://eeyore.seis.sc.edu/scsn/lobbyshake">http://eeyore.seis.sc.edu/scsn/lobbyshake</a></h3>
     <h5>Generated with <a href="https://github.com/crotwell/seisplotjs">Seisplotjs version <span id="sp_version">3</span></a>.</h5>
   </div>
@@ -47,13 +63,26 @@ mapList.forEach( map => {
 });
 
 const scMap = document.querySelector('sp-station-quake-map#scmap');
+
 const globalMap = document.querySelector('sp-station-quake-map#globalmap');
 globalMap.fitBounds = false;
 
-loadStations().then( networkList => {
-  for (const s of sp.stationxml.allStations(networkList)) {
-    console.log(s);
+scMap.onRedraw = scMap => {
+  const legend = L.control({position: 'bottomleft'});
+  legend.onAdd = map => {
+    console.log(`###### add legend to map`)
+    const div = document.createElement("div");
+    div.setAttribute("class", "legend");
+    const h3 = document.createElement("h3");
+    h3.textContent = "Hi";
+    div.appendChild(h3);
+    return div;
+  };
+  legend.addTo(scMap.map);
+  console.log("redraw with legend")
   }
+
+loadStations().then( networkList => {
   showRealtime(networkList)
 
   const allSta = Array.from(sp.stationxml.allStations(networkList));
@@ -84,6 +113,7 @@ loadQuakes().then( quakeList => {
 loadSCEarthquakes().then( quakeList => {
   scMap.addQuake(quakeList);
   scMap.draw();
+  return scMap;
 
 }).catch( function(error) {
   const div = document.querySelector('div#debug');
