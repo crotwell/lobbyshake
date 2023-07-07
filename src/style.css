@@ -53,19 +53,23 @@ h5 {
 #toprow {
   display: flex;
   flex-flow: row;
-  flex: 2;
+  flex: 5;
 }
 div.realtime {
-  flex: 1;
+  flex-grow: 1;
 }
-#globalmap {
-  flex: 1;
+div.globalmap {
+  flex-grow: 1;
+  display: flex;
+  flex-flow: column;
 }
+
+
 
 #botrow {
   display: flex;
   flex-flow: row;
-  flex: 1;
+  flex: 2;
 }
 #scmap {
   flex: 1;

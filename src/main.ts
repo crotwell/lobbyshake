@@ -18,7 +18,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div id="toprow">
       <div id="realtime" class="realtime">
       </div>
-      <div id="globalmap">
+      <div class="globalmap">
         <h5>Earthquakes across the world in the past X days</h5>
         <sp-station-quake-map id="globalmap"
         centerLon="-80.25" maxZoom="3" zoomLevel="2"
