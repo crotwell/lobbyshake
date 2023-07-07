@@ -1,5 +1,7 @@
 import * as sp from 'seisplotjs';
 
+export let max_packets = 0; //10;
+
 export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   // snip start vars
   //const sta = "BIRD";
@@ -18,6 +20,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   const duration = sp.luxon.Duration.fromISO('PT1M');
   const timeWindow = new sp.util.durationEnd(duration, sp.luxon.DateTime.utc());
   const seisPlotConfig = new sp.seismographconfig.SeismographConfig();
+  seisPlotConfig.title = "Measuring our foot-quakes"
   seisPlotConfig.wheelZoom = false;
   seisPlotConfig.isYAxisNice = false;
   seisPlotConfig.linkedTimeScale.offset = sp.luxon.Duration.fromMillis(-1*duration.toMillis());
@@ -27,10 +30,12 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   seisPlotConfig.ySublabelIsUnits = true;
   seisPlotConfig.doGain = true;
   seisPlotConfig.margin.left = 80;
+  seisPlotConfig.margin.bottom = 40;
   let graphList = new Map();
   let numPackets = 0;
   let paused = false;
   let stopped = true;
+  let lastPacketTime = null;
   let redrawInProgress = false;
   let realtimeDiv = document.querySelector("div#realtime");
   let rect = realtimeDiv.getBoundingClientRect();
@@ -43,12 +48,14 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
     console.assert(false, error);
     if (datalink) {datalink.close();}
     addToDebug("Error: "+error);
+
   };
 
   // snip start handle
   const packetHandler = function(packet) {
     if (packet.isMiniseed()) {
       numPackets++;
+      lastPacketTime = sp.luxon.DateTime.utc();
       let seisSegment = sp.miniseed.createSeismogramSegment(packet.asMiniseed());
       const codes = seisSegment.codes();
       let seisPlot = graphList.get(codes);
@@ -73,6 +80,10 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
           seisPlot.recheckAmpScaleDomain();
         }
         seisPlot.draw();
+        if (max_packets > 0 && numPackets > max_packets) {
+          toggleConnect();
+          togglePause();
+        }
     }
   };
   // snip start datalink
@@ -87,6 +98,21 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let timer = window.setInterval(function(elapsed) {
     if ( paused || redrawInProgress) {
       return;
+    }
+    const now = sp.luxon.DateTime.utc();
+    if (lastPacketTime) {
+      if (lastPacketTime.diffNow().toMillis() > 30*1000) {
+        stopped = true;
+        try {
+          if (datalink) {
+            datalink.endStream();
+            datalink.close();
+          }
+        } catch (error) {
+          console.log(`error clost datalink: ${error}`);
+        }
+        toggleConnect();
+      }
     }
     redrawInProgress = true;
     window.requestAnimationFrame(timestamp => {
