@@ -10,7 +10,8 @@ const qsmap = new sp.leafletutil.QuakeStationMap();
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div class="header">
-    <h1>SEOE Lobby Shakes...</h1>
+    <span><img class="logo" src="seoelogo.png" alt="SEOE Logo"/></span>
+    <span><h1>SEOE Lobby Shakes...</h1></span>
   </div>
   <div class="content">
     <div id="thegrid">

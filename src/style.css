@@ -4,7 +4,17 @@
 }
 
 .header {
+  display: flex;
+  flex-flow: row;
   flex: 0 1 auto;
+}
+
+.header h1 {
+  flex: 1;
+  margin-left: 60px;
+}
+.header .logo {
+  flex: 0;
 }
 
 .content {
