@@ -25,11 +25,9 @@ export function loadStations() {
     if (response.status === 200) {
       return response.text();
     } else if (
-      response.status === 204 ||
-      (isDef(this._nodata) && response.status === this._nodata)
+      response.status === 204 || response.status === 404
     ) {
-      // 204 is nodata, so successful but empty
-      return FAKE_EMPTY_XML;
+      return sp.fdsnstation.FAKE_EMPTY_XML;
     } else {
       throw new Error(`Status not successful: ${response.status}`);
     }

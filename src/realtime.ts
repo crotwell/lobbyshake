@@ -1,6 +1,9 @@
 import * as sp from 'seisplotjs';
+import {segmentToMinMax} from './minmax';
 
 export let max_packets = 0; //10;
+
+export let animationInterval = 1000; // default to once a second
 
 export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   // snip start vars
@@ -32,6 +35,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   seisPlotConfig.margin.left = 80;
   seisPlotConfig.margin.bottom = 40;
   let graphList = new Map();
+  let anGraphList = new Map();
   let numPackets = 0;
   let paused = false;
   let stopped = true;
@@ -40,15 +44,26 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let realtimeDiv = document.querySelector("div#realtime");
   let rect = realtimeDiv.getBoundingClientRect();
   let timerInterval = duration.toMillis()/
-                      ((rect.width-seisPlotConfig.margin.left-seisPlotConfig.margin.right)*5);
+                      ((rect.width-seisPlotConfig.margin.left-seisPlotConfig.margin.right));
   while (timerInterval < 50) { timerInterval *= 2;}
-
+  animationInterval = timerInterval;
 
   const errorFn = function(error) {
     console.assert(false, error);
-    if (datalink) {datalink.close();}
     addToDebug("Error: "+error);
+    forceReconnect();
+  };
 
+  const forceReconnect = function() {
+      stopped = true;
+      try {
+        if (datalink) {
+          datalink.close();
+        }
+      } catch (error) {
+        console.error(`error close datalink: ${error}`);
+      }
+      setTimeout(() => {if (stopped) {toggleConnect();}});
   };
 
   // snip start handle
@@ -57,6 +72,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       numPackets++;
       lastPacketTime = sp.luxon.DateTime.utc();
       let seisSegment = sp.miniseed.createSeismogramSegment(packet.asMiniseed());
+      //seisSegment = segmentToMinMax(seisSegment, 10);
       const codes = seisSegment.codes();
       let seisPlot = graphList.get(codes);
       if ( ! seisPlot) {
@@ -68,13 +84,17 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
           seisPlot = new sp.seismograph.Seismograph([seisData], seisPlotConfig);
           realtimeDiv.appendChild(seisPlot);
           graphList.set(codes, seisPlot);
+          const anSeis = new sp.animatedseismograph.AnimatedSeismograph(seisPlot);
+          anSeis.animate();
+          anGraphList.set(codes, anSeis);
         } else {
           let sdd = seisPlot.seisData[0];
           sdd.append(seisSegment);
-
+          anGraphList.get(codes).clearImageCache();
           let seis = sdd.seismogram;
-          const timeWindow = new sp.util.durationEnd(duration, sp.luxon.DateTime.utc());
-          seis.trim(timeWindow); // trim old data
+          const doubleDuration = duration.plus(duration);
+          const timeWindow = new sp.util.durationEnd(doubleDuration, sp.luxon.DateTime.utc());
+          seis = seis.trim(timeWindow); // trim old data
           //seis = sp.filter.rMean(seis);
           sdd.seismogram = seis;
           seisPlot.recheckAmpScaleDomain();
@@ -86,53 +106,48 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
         }
     }
   };
+  const logPacketHandler = function(packet) {
+    try {
+      packetHandler(packet);
+    } catch (error) {
+      console.error(`error datalink packet handler: ${error}`);
+      forceReconnect();
+    }
+  };
+
   // snip start datalink
   // wss://thecloud.seis.sc.edu/ringserver/datalink
   // wss://rtserve.iris.washington.edu/datalink
+  const eeyoreWSS =
+      "wss://eeyore.seis.sc.edu/intringserver/datalink";
+  const eeyoreRing = "intringserver";
+  let ring = "ringserver";
+  if (window.location.host.startsWith("eeyore")) {
+    ring = eeyoreRing;
+  }
+  let localDatalink = `ws://${window.location.host}/${ring}/datalink`
+  let datalinkURL = localDatalink;
+  if (false) {
+    console.log("##### EEYORE ####");
+    datalinkURL = eeyoreWSS;
+  }
   const datalink = new sp.datalink.DataLinkConnection(
-      "wss://eeyore.seis.sc.edu/intringserver/datalink",
+      datalinkURL,
       packetHandler,
       errorFn);
 
   // snip start timer
   let timer = window.setInterval(function(elapsed) {
-    if ( paused || redrawInProgress) {
+    if ( paused || stopped) {
       return;
     }
-    const now = sp.luxon.DateTime.utc();
     if (lastPacketTime) {
       if (lastPacketTime.diffNow().toMillis() > 30*1000) {
-        stopped = true;
-        try {
-          if (datalink) {
-            datalink.endStream();
-            datalink.close();
-          }
-        } catch (error) {
-          console.log(`error clost datalink: ${error}`);
-        }
-        toggleConnect();
+        forceReconnect();
       }
     }
-    redrawInProgress = true;
-    window.requestAnimationFrame(timestamp => {
-      try {
-        const now = sp.luxon.DateTime.utc();
-        graphList.forEach(function(graph, key) {
-          graph.seisData.forEach(sdd => {
-            sdd.alignmentTime = now;
-          });
-          graph.calcTimeScaleDomain();
-          graph.calcAmpScaleDomain();
-          graph.draw();
-        });
-      } catch(err) {
-        console.assert(false, err);
-      }
-      redrawInProgress = false;
-    });
 
-    }, timerInterval);
+  }, 10*1000);
 
   // snip start pause
   const bPause = document.querySelector("button#pause");
@@ -144,9 +159,15 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let togglePause = function() {
     paused = ! paused;
     if (paused) {
+      anGraphList.forEach(function(anSeis, key) {
+        anSeis.pause();
+      });
       const bPause = document.querySelector("button#pause");
       if (bPause) bPause.textContent = "Play";
     } else {
+      anGraphList.forEach(function(anSeis, key) {
+        anSeis.animate();
+      });
       const bPause = document.querySelector("button#pause");
       if (bPause) bPause.textContent = "Pause";
     }
@@ -170,7 +191,6 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
     stopped = ! stopped;
     if (stopped) {
       if (datalink) {
-        datalink.endStream();
         datalink.close();
       }
       const bDisconnect = document.querySelector("button#disconnect");
@@ -215,4 +235,5 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   }
   // snip start go
   toggleConnect();
+
 }

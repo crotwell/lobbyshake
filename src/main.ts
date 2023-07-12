@@ -19,7 +19,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div id="realtime" class="realtime">
       </div>
       <div class="globalmap">
-        <h5>Earthquakes across the world in the past X days</h5>
+        <h5>Earthquakes across the world in the past 30 days</h5>
         <sp-station-quake-map id="globalmap"
         centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="2"
         fitBounds="false">
@@ -84,13 +84,15 @@ scMap.onRedraw = scMap => {
   }
 
 loadStations().then( networkList => {
-  showRealtime(networkList)
 
   const allSta = Array.from(sp.stationxml.allStations(networkList));
   scMap.addStation(allSta);
   scMap.draw();
   globalMap.addStation(allSta);
   globalMap.draw();
+  return networkList;
+}).then(networkList => {
+    showRealtime(networkList);
 }).catch( function(error) {
   const div = document.querySelector('div#debug');
   div.innerHTML = `
@@ -123,3 +125,60 @@ loadSCEarthquakes().then( quakeList => {
   `;
   console.assert(false, error);
 });
+
+function isInSC(q) {
+  return q.latitude > 32 && q.latitude < 35 && q.longitude > -84 && q.longitude < -78;
+}
+
+function reloadGlobal(elapsed) {
+  console.log(`before reload global eq ${globalMap.quakeList.length}`);
+  sp.usgsgeojson.loadHourSummarySignificant().then(hourQuakeList => {
+    console.log(`load significant: ${hourQuakeList.length}`);
+    let need_redraw = false;
+    hourQuakeList.forEach(q => {
+      let found = false;
+      globalMap.quakeList.forEach( mapQuake => {
+        if (q.publicId === mapQuake.publicId) {
+          found = true;
+        }
+      });
+      if ( ! found ) {
+        globalMap.addQuake(q);
+        need_redraw = true;
+        console.log(`global adding quake: ${q.toString()}`)
+      }
+    });
+    if (need_redraw) {
+      globalMap.draw();
+    }
+    console.log(`after reload global eq: ${hourQuakeList.length} ${globalMap.quakeList.length}`);
+  });
+  console.log(`before reload SC quakes:  ${scMap.quakeList.length}`);
+  sp.usgsgeojson.loadHourSummaryAll().then(hourQuakeList => {
+    console.log(`load SC hour ${hourQuakeList.length}`);
+    let need_redraw = false;
+    hourQuakeList
+    .filter(isInSC)
+    .forEach(q => {
+      let found = false;
+      scMap.quakeList.forEach( mapQuake => {
+        if (q.publicId === mapQuake.publicId) {
+          found = true;
+        }
+      });
+      if ( ! found ) {
+        scMap.addQuake(q);
+        need_redraw = true;
+        console.log(`sc adding quake: ${q.toString()}`)
+      }
+    });
+    if (need_redraw) {
+      scMap.draw();
+    }
+    console.log(`after reload scMap eq: ${hourQuakeList.length} ${scMap.quakeList.length}`);
+  });
+};
+
+reloadGlobal();
+const eq_reload_interval = 10*60*1000; // 10 min?
+let eq_reload_timer = window.setInterval(reloadGlobal, eq_reload_interval);

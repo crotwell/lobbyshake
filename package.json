@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
-    "seisplotjs": "^3.1.0-alpha"
+    "seisplotjs": "^3.1.0-alpha2"
   }
 }
