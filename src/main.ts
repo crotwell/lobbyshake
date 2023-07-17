@@ -132,6 +132,8 @@ function isInSC(q) {
 
 function reloadGlobal(elapsed) {
   console.log(`before reload global eq ${globalMap.quakeList.length}`);
+  const quakeStart = sp.luxon.DateTime.utc().minus(sp.luxon.Duration.fromISO('P30D'));
+  const scQuakeStart = sp.luxon.DateTime.utc().minus(sp.luxon.Duration.fromISO('P90D'));
   sp.usgsgeojson.loadHourSummarySignificant().then(hourQuakeList => {
     console.log(`load significant: ${hourQuakeList.length}`);
     let need_redraw = false;
@@ -148,6 +150,11 @@ function reloadGlobal(elapsed) {
         console.log(`global adding quake: ${q.toString()}`)
       }
     });
+    const beforeLength= globalMap.quakeList.length;
+    globalMap.quakeList = globalMap.quakeList.filter(q => q.time > quakeStart);
+    if (beforeLength !== globalMap.quakeList.length) {
+      need_redraw = true;
+    }
     if (need_redraw) {
       globalMap.draw();
     }
@@ -172,6 +179,11 @@ function reloadGlobal(elapsed) {
         console.log(`sc adding quake: ${q.toString()}`)
       }
     });
+    const beforeLength= scMap.quakeList.length;
+    scMap.quakeList = scMap.quakeList.filter(q => q.time > scQuakeStart);
+    if (beforeLength !== scMap.quakeList.length) {
+      need_redraw = true;
+    }
     if (need_redraw) {
       scMap.draw();
     }
