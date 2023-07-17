@@ -37,7 +37,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </sp-station-quake-map>
       </div>
       <div id="explain">
-        <img src="USCbox.svg" id="explainbox"></img>
+        <img src="USCbox_color.png" id="explainbox"></img>
         <img src="USCbox_legend.svg" id="legendbox"></img>
       </div>
       </div>
