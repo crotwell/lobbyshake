@@ -1,12 +1,12 @@
 [Unit]
 Description=Chromium Lobby Seismometer
 Requires=graphical.target
-After=graphical.target
+After=graphical.target network-online.target
 
 [Service]
 Environment=DISPLAY=:0.0
 Environment=XAUTHORITY=/home/myshake/.Xauthority
-ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars --start-fullscreen --kiosk http://localhost
+ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars  --incognito --disable-restore-session-state --start-fullscreen --kiosk http://localhost
 Restart=on-abort
 User=myshake
 Group=myshake
