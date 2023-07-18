@@ -25,7 +25,7 @@
 .footer {
   flex: 0 1 auto;
   text-align: start;
-  font-size: smaller;
+  font-size: small;
 }
 
 #eeyoreurl {
