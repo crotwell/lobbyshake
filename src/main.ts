@@ -46,10 +46,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </div>
   </div>
   <div class="footer">
+  <!--
     <button id="pause">Pause</button>
     <button id="disconnect">Disconnect</button>
-    <h3><a href="http://eeyore.seis.sc.edu/scsn/lobbyshake">http://eeyore.seis.sc.edu/scsn/lobbyshake</a></h3>
-    <h5>Generated with <a href="https://github.com/crotwell/seisplotjs">Seisplotjs version <span id="sp_version">3</span></a>.</h5>
+    -->
+    <span id="eeyoreurl"><a href="http://eeyore.seis.sc.edu/scsn/lobbyshake">http://eeyore.seis.sc.edu/scsn/lobbyshake</a></span>
+    <span></span>
+    <span id="spjs">Generated with <a href="https://github.com/crotwell/seisplotjs">Seisplotjs version <span id="sp_version">3</span></a>.</span>
+    
   </div>
 `
 

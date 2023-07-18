@@ -1,13 +1,14 @@
 import * as sp from 'seisplotjs';
 import {segmentToMinMax} from './minmax';
+import {Interval} from 'luxon';
+
+const FORCE_EEYORE_DATALINK=false;
 
 export let max_packets = 0; //10;
 
 export let animationInterval = 1000; // default to once a second
 
 export function showRealtime(networkList: Array<sp.stationxml.Network>) {
-  // snip start vars
-  //const sta = "BIRD";
   const sta = "R71D7"
   let net;
   let band;
@@ -46,6 +47,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let timerInterval = duration.toMillis()/
                       ((rect.width-seisPlotConfig.margin.left-seisPlotConfig.margin.right));
   while (timerInterval < 50) { timerInterval *= 2;}
+  while (timerInterval < 500) { timerInterval *= 2;}
   animationInterval = timerInterval;
 
   const errorFn = function(error) {
@@ -66,7 +68,6 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       setTimeout(() => {if (stopped) {toggleConnect();}});
   };
 
-  // snip start handle
   const packetHandler = function(packet) {
     if (packet.isMiniseed()) {
       numPackets++;
@@ -75,31 +76,24 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       //seisSegment = segmentToMinMax(seisSegment, 10);
       const codes = seisSegment.codes();
       let seisPlot = graphList.get(codes);
-      if ( ! seisPlot) {
+      const anSeis = anGraphList.get(codes)
+      if ( ! anSeis) {
           let seismogram = new sp.seismogram.Seismogram( [ seisSegment ]);
-          //seismogram = sp.filter.rMean(seismogram);
           let seisData = sp.seismogram.SeismogramDisplayData.fromSeismogram(seismogram);
           seisData.alignmentTime = sp.luxon.DateTime.utc();
           seisData.associateChannel(networkList);
           seisPlot = new sp.seismograph.Seismograph([seisData], seisPlotConfig);
           realtimeDiv.appendChild(seisPlot);
           graphList.set(codes, seisPlot);
-          const anSeis = new sp.animatedseismograph.AnimatedSeismograph(seisPlot);
+          const anSeis = new sp.animatedseismograph.AnimatedSeismograph(seisPlot, animationInterval);
           anSeis.animate();
           anGraphList.set(codes, anSeis);
         } else {
-          let sdd = seisPlot.seisData[0];
-          sdd.append(seisSegment);
-          anGraphList.get(codes).clearImageCache();
-          let seis = sdd.seismogram;
+          anSeis.append(seisSegment);
           const doubleDuration = duration.plus(duration);
           const timeWindow = new sp.util.durationEnd(doubleDuration, sp.luxon.DateTime.utc());
-          seis = seis.trim(timeWindow); // trim old data
-          //seis = sp.filter.rMean(seis);
-          sdd.seismogram = seis;
-          seisPlot.recheckAmpScaleDomain();
+          anSeis.trim(timeWindow); // trim old data
         }
-        seisPlot.draw();
         if (max_packets > 0 && numPackets > max_packets) {
           toggleConnect();
           togglePause();
@@ -115,9 +109,6 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
     }
   };
 
-  // snip start datalink
-  // wss://thecloud.seis.sc.edu/ringserver/datalink
-  // wss://rtserve.iris.washington.edu/datalink
   const eeyoreWSS =
       "wss://eeyore.seis.sc.edu/intringserver/datalink";
   const eeyoreRing = "intringserver";
@@ -127,10 +118,11 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   }
   let localDatalink = `ws://${window.location.host}/${ring}/datalink`
   let datalinkURL = localDatalink;
-  if (false) {
+  if (FORCE_EEYORE_DATALINK) {
     console.log("##### EEYORE ####");
     datalinkURL = eeyoreWSS;
   }
+  console.log(`Datalink url: ${datalinkURL}`);
   const datalink = new sp.datalink.DataLinkConnection(
       datalinkURL,
       packetHandler,

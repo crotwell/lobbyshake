@@ -24,6 +24,19 @@
 }
 .footer {
   flex: 0 1 auto;
+  text-align: start;
+  font-size: smaller;
+}
+
+#eeyoreurl {
+  text-align: start;
+  padding-left: 100px;
+  padding-right: 100px;
+}
+#spjs {
+  text-align: end;
+  padding-left: 100px;
+  padding-right: 100px;
 }
 
 .content div {
