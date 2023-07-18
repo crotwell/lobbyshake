@@ -20,7 +20,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </div>
       <div class="globalmap">
         <h5>Earthquakes across the world in the past 30 days</h5>
-        <sp-station-quake-map id="globalmap"
+        <sp-station-quake-map id="globalmap" magScale="2"
         centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="2"
         fitBounds="false">
         </sp-station-quake-map>
@@ -101,7 +101,7 @@ loadStations().then( networkList => {
   console.assert(false, error);
 });
 
-loadQuakes().then( quakeList => {
+sp.usgsgeojson.loadMonthSummaryAll().then( quakeList => {
   globalMap.addQuake(quakeList);
   globalMap.draw();
 
