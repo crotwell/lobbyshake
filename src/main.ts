@@ -1,6 +1,4 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
 import { showRealtime } from './realtime.ts'
 import {loadQuakes, loadStations, loadSCEarthquakes} from './quake_station.ts';
 import * as L from "leaflet";
@@ -53,7 +51,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <span id="eeyoreurl"><a href="http://eeyore.seis.sc.edu/scsn/lobbyshake">http://eeyore.seis.sc.edu/scsn/lobbyshake</a></span>
     <span></span>
     <span id="spjs">Generated with <a href="https://github.com/crotwell/seisplotjs">Seisplotjs version <span id="sp_version">3</span></a>.</span>
-    
+
   </div>
 `
 
