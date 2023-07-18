@@ -1,0 +1,15 @@
+[Unit]
+Description=Chromium Lobby Seismometer
+Requires=graphical.target
+After=graphical.target
+
+[Service]
+Environment=DISPLAY=:0.0
+Environment=XAUTHORITY=/home/myshake/.Xauthority
+ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost
+Restart=on-abort
+User=myshake
+Group=myshake
+
+[Install]
+WantedBy=graphical.target
