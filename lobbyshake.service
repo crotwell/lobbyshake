@@ -6,7 +6,7 @@ After=graphical.target
 [Service]
 Environment=DISPLAY=:0.0
 Environment=XAUTHORITY=/home/myshake/.Xauthority
-ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars --kiosk http://localhost
+ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars --start-fullscreen --kiosk http://localhost
 Restart=on-abort
 User=myshake
 Group=myshake
