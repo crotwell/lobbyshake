@@ -7,9 +7,12 @@ After=graphical.target network-online.target
 Environment=DISPLAY=:0.0
 Environment=XAUTHORITY=/home/myshake/.Xauthority
 ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars  --incognito --disable-restore-session-state --start-fullscreen --kiosk http://localhost
-Restart=on-abort
+Restart=always
+RestartSec=3
+RuntimeMaxSec=6h
 User=myshake
 Group=myshake
+WorkingDirectory=/home/myshake/
 
 [Install]
 WantedBy=graphical.target
