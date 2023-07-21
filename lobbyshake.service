@@ -9,7 +9,7 @@ Environment=XAUTHORITY=/home/myshake/.Xauthority
 ExecStart=/usr/bin/chromium-browser --noerrdialogs --disable-infobars  --incognito --disable-restore-session-state --start-fullscreen --kiosk http://localhost
 Restart=always
 RestartSec=3
-RuntimeMaxSec=6h
+RuntimeMaxSec=2h
 User=myshake
 Group=myshake
 WorkingDirectory=/home/myshake/
