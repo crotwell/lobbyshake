@@ -47,7 +47,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let timerInterval = duration.toMillis()/
                       ((rect.width-seisPlotConfig.margin.left-seisPlotConfig.margin.right));
   while (timerInterval < 50) { timerInterval *= 2;}
-  while (timerInterval < 500) { timerInterval *= 2;}
+  while (timerInterval < 1000) { timerInterval *= 2;}
   animationInterval = timerInterval;
 
   const errorFn = function(error) {
