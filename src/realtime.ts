@@ -1,6 +1,6 @@
 import * as sp from 'seisplotjs';
 import {segmentToMinMax} from './minmax';
-import {Interval} from 'luxon';
+import {Interval, DateTime, Duration} from 'luxon';
 
 const FORCE_EEYORE_DATALINK=false;
 
@@ -21,34 +21,51 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   }
 
   const matchPattern = `${net}_${sta}_00_${band}HN/MSEED`;
-  const duration = sp.luxon.Duration.fromISO('PT1M');
-  const timeWindow = new sp.util.durationEnd(duration, sp.luxon.DateTime.utc());
-  const seisPlotConfig = new sp.seismographconfig.SeismographConfig();
-  seisPlotConfig.title = "Measuring our foot-quakes"
-  seisPlotConfig.wheelZoom = false;
-  seisPlotConfig.isYAxisNice = false;
-  seisPlotConfig.linkedTimeScale.offset = sp.luxon.Duration.fromMillis(-1*duration.toMillis());
-  seisPlotConfig.linkedTimeScale.duration = duration;
-  seisPlotConfig.linkedAmplitudeScale = new sp.scale.FixedHalfWidthAmplitudeScale(1e-4);
-  seisPlotConfig.yLabel = null;
-  seisPlotConfig.ySublabelIsUnits = true;
-  seisPlotConfig.doGain = true;
-  seisPlotConfig.margin.left = 80;
-  seisPlotConfig.margin.bottom = 40;
-  let graphList = new Map();
-  let anGraphList = new Map();
+
+
   let numPackets = 0;
   let paused = false;
   let stopped = true;
   let lastPacketTime = null;
   let redrawInProgress = false;
   let realtimeDiv = document.querySelector("div#realtime");
-  let rect = realtimeDiv.getBoundingClientRect();
-  let timerInterval = duration.toMillis()/
-                      ((rect.width-seisPlotConfig.margin.left-seisPlotConfig.margin.right));
-  while (timerInterval < 50) { timerInterval *= 2;}
-  while (timerInterval < 1000) { timerInterval *= 2;}
-  animationInterval = timerInterval;
+
+  const rtConfig = {
+    duration: Duration.fromISO("PT1M"),
+    alignmentTime: DateTime.utc(),
+    offset: Duration.fromMillis(0),
+    minRedrawMillis: 100,
+    networkList: networkList
+  };
+
+  const rtDisp = sp.animatedseismograph.createRealtimeDisplay(rtConfig);
+  rtDisp.organizedDisplay.tools = false;
+
+  const seisPlotConfig = rtDisp.organizedDisplay.seismographConfig;
+  seisPlotConfig.title = "Measuring our foot-quakes"
+  seisPlotConfig.linkedAmplitudeScale = new sp.scale.FixedHalfWidthAmplitudeScale(1e-4);
+  seisPlotConfig.yLabel = null;
+  seisPlotConfig.ySublabelIsUnits = true;
+  seisPlotConfig.doGain = true;
+  seisPlotConfig.margin.left = 80;
+  seisPlotConfig.margin.bottom = 40;
+  rtDisp.organizedDisplay.addStyle(`
+    sp-organized-display-item {
+      height: 100%;
+    }
+    `);
+  realtimeDiv.appendChild(rtDisp.organizedDisplay);
+
+  rtDisp.organizedDisplay.draw();
+  rtDisp.animationScaler.animate();
+
+  let datalink = null;
+
+  // give time for display to draw, then use pixels to get optimal redraw time
+  setTimeout(() => {
+    rtDisp.animationScaler.minRedrawMillis = sp.animatedseismograph.calcOnePixelTimeInterval(rtDisp.organizedDisplay);
+    console.log(`min redraw millis= ${rtDisp.animationScaler.minRedrawMillis}`);
+  }, 1000);
 
   const errorFn = function(error) {
     console.assert(false, error);
@@ -68,47 +85,6 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       setTimeout(() => {if (stopped) {toggleConnect();}});
   };
 
-  const packetHandler = function(packet) {
-    if (packet.isMiniseed()) {
-      numPackets++;
-      lastPacketTime = sp.luxon.DateTime.utc();
-      let seisSegment = sp.miniseed.createSeismogramSegment(packet.asMiniseed());
-      //seisSegment = segmentToMinMax(seisSegment, 10);
-      const codes = seisSegment.codes();
-      let seisPlot = graphList.get(codes);
-      const anSeis = anGraphList.get(codes)
-      if ( ! anSeis) {
-          let seismogram = new sp.seismogram.Seismogram( [ seisSegment ]);
-          let seisData = sp.seismogram.SeismogramDisplayData.fromSeismogram(seismogram);
-          seisData.alignmentTime = sp.luxon.DateTime.utc();
-          seisData.associateChannel(networkList);
-          seisPlot = new sp.seismograph.Seismograph([seisData], seisPlotConfig);
-          realtimeDiv.appendChild(seisPlot);
-          graphList.set(codes, seisPlot);
-          const anSeis = new sp.animatedseismograph.AnimatedSeismograph(seisPlot, animationInterval);
-          anSeis.animate();
-          anGraphList.set(codes, anSeis);
-        } else {
-          anSeis.append(seisSegment);
-          const doubleDuration = duration.plus(duration);
-          const timeWindow = new sp.util.durationEnd(doubleDuration, sp.luxon.DateTime.utc());
-          anSeis.trim(timeWindow); // trim old data
-        }
-        if (max_packets > 0 && numPackets > max_packets) {
-          toggleConnect();
-          togglePause();
-        }
-    }
-  };
-  const logPacketHandler = function(packet) {
-    try {
-      packetHandler(packet);
-    } catch (error) {
-      console.error(`error datalink packet handler: ${error}`);
-      forceReconnect();
-    }
-  };
-
   const eeyoreWSS =
       "wss://eeyore.seis.sc.edu/intringserver/datalink";
   const eeyoreRing = "intringserver";
@@ -123,10 +99,6 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
     datalinkURL = eeyoreWSS;
   }
   console.log(`Datalink url: ${datalinkURL}`);
-  const datalink = new sp.datalink.DataLinkConnection(
-      datalinkURL,
-      packetHandler,
-      errorFn);
 
   // snip start timer
   let timer = window.setInterval(function(elapsed) {
@@ -138,6 +110,10 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
         forceReconnect();
       }
     }
+    // trim old data
+    const doubleDuration = rtDisp.config.duration.plus(rtDisp.config.duration);
+    const timeWindow = new sp.util.durationEnd(doubleDuration, sp.luxon.DateTime.utc());
+    sp.animatedseismograph.trim(rtDisp.organizedDisplay, timeWindow); // trim old data
 
   }, 10*1000);
 
@@ -151,15 +127,11 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   let togglePause = function() {
     paused = ! paused;
     if (paused) {
-      anGraphList.forEach(function(anSeis, key) {
-        anSeis.pause();
-      });
+      rtDisp.animationScaler.pause();
       const bPause = document.querySelector("button#pause");
       if (bPause) bPause.textContent = "Play";
     } else {
-      anGraphList.forEach(function(anSeis, key) {
-        anSeis.animate();
-      });
+      rtDisp.animationScaler.animate();
       const bPause = document.querySelector("button#pause");
       if (bPause) bPause.textContent = "Pause";
     }
@@ -180,6 +152,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   }
 
   let toggleConnect = function() {
+    console.log(`toggle connect: ${stopped}`)
     stopped = ! stopped;
     if (stopped) {
       if (datalink) {
@@ -188,6 +161,17 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       const bDisconnect = document.querySelector("button#disconnect");
       if (bDisconnect) bDisconnect.textContent = "Reconnect";
     } else {
+      if (! datalink) {
+        datalink = new sp.datalink.DataLinkConnection(
+          datalinkURL,
+          packet => {
+            lastPacketTime = packet.packetEnd;
+            //console.log(`${lastPacketTime.toISO()}  ${(DateTime.utc().diff(lastPacketTime).toISO())}  ${DateTime.utc().toISO()}`)
+            rtDisp.packetHandler(packet);
+          },
+          errorFn
+        );
+      }
       if (datalink) {
         datalink.connect()
         .then(serverId => {
@@ -205,6 +189,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
           return datalink.infoStreams();
         }).then(response => {
           addToDebug(`info streams response: ${response}`)
+          const timeWindow = new sp.util.durationEnd(rtDisp.config.duration, sp.luxon.DateTime.utc());
           return datalink.positionAfter(timeWindow.start);
         }).then(response => {
           if (response.isError()) {
@@ -225,6 +210,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       if (bDisconnect) bDisconnect.textContent = "Disconnect";
     }
   }
+
   // snip start go
   toggleConnect();
 
