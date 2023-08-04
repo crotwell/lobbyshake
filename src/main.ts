@@ -17,18 +17,18 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div id="realtime" class="realtime">
       </div>
       <div class="globalmap">
-        <h5>Earthquakes across the world in the past 30 days</h5>
+        <h4>Earthquakes across the world in the past 30 days</h4>
         <sp-station-quake-map id="globalmap" magScale="2"
-        centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="2"
+        centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="3"
         fitBounds="false">
         </sp-station-quake-map>
       </div>
       </div>
       <div id="botrow">
       <div id="scmap">
-        <h5>Earthquakes in South Carolina in the past 90 days</h5>
+        <h4>Earthquakes in South Carolina in the past 90 days</h4>
         <sp-station-quake-map id="scmap"
-          centerLat="33.9" centerLon="-80.3" zoomLevel="6"
+          centerLat="33.9" centerLon="-80.3" zoomLevel="7"
           tileUrl="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           tileAttribution="OpenStreetMap"
           >
