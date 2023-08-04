@@ -19,7 +19,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div class="globalmap">
         <h4>Earthquakes across the world in the past 30 days</h4>
         <sp-station-quake-map id="globalmap" magScale="2"
-        centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="3"
+        centerLon="-80.25" centerLat="0" maxZoom="3" zoomLevel="2"
         fitBounds="false">
         </sp-station-quake-map>
       </div>
