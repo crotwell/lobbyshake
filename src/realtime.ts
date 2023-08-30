@@ -6,7 +6,7 @@ const FORCE_EEYORE_DATALINK=false;
 
 export let max_packets = 0; //10;
 
-export let animationInterval = 1000; // default to once a second
+export let minAnimationInterval = 1000; // default to once a second
 
 export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   const sta = "R71D7"
@@ -64,6 +64,7 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   for (let channel of matchChannels) {
     const sdd = sp.seismogram.SeismogramDisplayData.fromChannelAndTimeWindow(
       channel, timeWindow);
+    sdd.alignmentTime = rtDisp.animationScaler.alignmentTime;
     rtDisp.organizedDisplay.seisData =[ sdd ];
   }
 
@@ -76,7 +77,12 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
 
   // give time for display to draw, then use pixels to get optimal redraw time
   setTimeout(() => {
-    rtDisp.animationScaler.minRedrawMillis = sp.animatedseismograph.calcOnePixelTimeInterval(rtDisp.organizedDisplay);
+    let animationIntervalMillis =
+      sp.animatedseismograph.calcOnePixelDuration(rtDisp.organizedDisplay).toMillis();
+    while (animationIntervalMillis > 0 && animationIntervalMillis < minAnimationInterval) {
+      animationIntervalMillis *= 2;
+    }
+    rtDisp.animationScaler.minRedrawMillis = animationIntervalMillis;
     console.log(`min redraw millis= ${rtDisp.animationScaler.minRedrawMillis}`);
   }, 1000);
 
