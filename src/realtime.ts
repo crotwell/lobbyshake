@@ -19,8 +19,10 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
           net = "CO";
           band = "H"
   }
+  const chan = `${band}HN`;
+  const loc = "00";
 
-  const matchPattern = `${net}_${sta}_00_${band}HN/MSEED`;
+  const matchPattern = `${net}_${sta}_${loc}_${chan}/MSEED`;
 
 
   let numPackets = 0;
@@ -54,6 +56,17 @@ export function showRealtime(networkList: Array<sp.stationxml.Network>) {
       height: 100%;
     }
     `);
+
+  // we know we only have one channel, so prepopulate a display for it,
+  // which will be empty
+  const matchChannels = sp.stationxml.findChannels(networkList, net, sta, loc, chan);
+  const timeWindow = sp.util.durationEnd(rtConfig.duration, rtConfig.alignmentTime);
+  for (let channel of matchChannels) {
+    const sdd = sp.seismogram.SeismogramDisplayData.fromChannelAndTimeWindow(
+      channel, timeWindow);
+    rtDisp.organizedDisplay.seisData =[ sdd ];
+  }
+
   realtimeDiv.appendChild(rtDisp.organizedDisplay);
 
   rtDisp.organizedDisplay.draw();
