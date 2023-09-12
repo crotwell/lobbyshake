@@ -6,7 +6,7 @@ const FORCE_EEYORE_DATALINK=false;
 
 export let max_packets = 0; //10;
 
-export let minAnimationInterval = 1000; // default to once a second
+export let minAnimationInterval = 100; // default to once a tenth of a second
 
 export function showRealtime(networkList: Array<sp.stationxml.Network>) {
   const sta = "R71D7"
