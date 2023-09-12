@@ -55,6 +55,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
 `
 
+function log_error(error) {
+  const div = document.querySelector('div#debug');
+  div.innerHTML = `
+    <p>Error loading data. ${error}</p>
+  `;
+  console.assert(false, error);
+}
+
 const verEl = document.querySelector('#sp_version');
 if (verEl) { verEl.textContent = sp.version; console.log(`SeisplotJS version: ${sp.version}`);}
 
@@ -95,38 +103,21 @@ loadStations().then( networkList => {
   return networkList;
 }).then(networkList => {
     showRealtime(networkList);
-}).catch( function(error) {
-  const div = document.querySelector('div#debug');
-  div.innerHTML = `
-    <p>Error loading data. ${error}</p>
-  `;
-  console.assert(false, error);
-});
+}).catch( log_error);
 
-sp.usgsgeojson.loadMonthSummaryAll().then( quakeList => {
+
+sp.usgsgeojson.loadMonthSummaryM2_5().then( quakeList => {
   globalMap.addQuake(quakeList);
   globalMap.draw();
 
-}).catch( function(error) {
-  const div = document.querySelector('div#debug');
-  div.innerHTML = `
-    <p>Error loading data. ${error}</p>
-  `;
-  console.assert(false, error);
-});
+}).catch( log_error);
 
 loadSCEarthquakes().then( quakeList => {
   scMap.addQuake(quakeList);
   scMap.draw();
   return scMap;
 
-}).catch( function(error) {
-  const div = document.querySelector('div#debug');
-  div.innerHTML = `
-    <p>Error loading data. ${error}</p>
-  `;
-  console.assert(false, error);
-});
+}).catch( log_error);
 
 function isInSC(q) {
   return q.latitude > 32 && q.latitude < 35 && q.longitude > -84 && q.longitude < -78;
@@ -136,8 +127,8 @@ function reloadGlobal(elapsed) {
   console.log(`before reload global eq ${globalMap.quakeList.length}`);
   const quakeStart = sp.luxon.DateTime.utc().minus(sp.luxon.Duration.fromISO('P30D'));
   const scQuakeStart = sp.luxon.DateTime.utc().minus(sp.luxon.Duration.fromISO('P90D'));
-  sp.usgsgeojson.loadHourSummarySignificant().then(hourQuakeList => {
-    console.log(`load significant: ${hourQuakeList.length}`);
+  sp.usgsgeojson.loadHourSummaryM2_5().then(hourQuakeList => {
+    console.log(`load hour 2.5: ${hourQuakeList.length}`);
     let need_redraw = false;
     hourQuakeList.forEach(q => {
       let found = false;
@@ -161,7 +152,8 @@ function reloadGlobal(elapsed) {
       globalMap.draw();
     }
     console.log(`after reload global eq: ${hourQuakeList.length} ${globalMap.quakeList.length}`);
-  });
+  }).catch( log_error);
+
   console.log(`before reload SC quakes:  ${scMap.quakeList.length}`);
   sp.usgsgeojson.loadHourSummaryAll().then(hourQuakeList => {
     console.log(`load SC hour ${hourQuakeList.length}`);
@@ -190,7 +182,7 @@ function reloadGlobal(elapsed) {
       scMap.draw();
     }
     console.log(`after reload scMap eq: ${hourQuakeList.length} ${scMap.quakeList.length}`);
-  });
+  }).catch( log_error);
 };
 
 reloadGlobal();
